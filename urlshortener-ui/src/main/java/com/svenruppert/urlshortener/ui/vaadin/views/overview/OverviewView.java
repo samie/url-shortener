@@ -1,11 +1,15 @@
 package com.svenruppert.urlshortener.ui.vaadin.views.overview;
 
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.svenruppert.urlshortener.client.ColumnVisibilityClient;
 import com.svenruppert.urlshortener.client.URLShortenerClient;
 import com.svenruppert.urlshortener.core.urlmapping.ShortUrlMapping;
 import com.svenruppert.urlshortener.core.urlmapping.UrlMappingListRequest;
 import com.svenruppert.urlshortener.ui.vaadin.MainLayout;
+import com.svenruppert.urlshortener.ui.vaadin.security.AppRole;
+import com.svenruppert.urlshortener.ui.vaadin.security.VisibleFor;
 import com.svenruppert.urlshortener.ui.vaadin.components.ColumnVisibilityDialog;
 import com.svenruppert.urlshortener.ui.vaadin.components.SearchBar;
 import com.svenruppert.urlshortener.ui.vaadin.events.MappingCreatedOrChanged;
@@ -55,6 +59,7 @@ import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CE
 
 @PageTitle("Overview")
 @Route(value = OverviewView.PATH, layout = MainLayout.class)
+@VisibleFor(AppRole.USER)
 @CssImport("./styles/overview-view.css")
 public class OverviewView
     extends VerticalLayout

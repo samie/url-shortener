@@ -9,6 +9,8 @@ import com.svenruppert.urlshortener.api.handler.admin.columns.ColumnVisibilityBu
 import com.svenruppert.urlshortener.api.handler.admin.columns.ColumnVisibilityHandler;
 import com.svenruppert.urlshortener.api.handler.admin.columns.ColumnVisibilitySingleHandler;
 import com.svenruppert.urlshortener.api.handler.statistics.*;
+import com.svenruppert.urlshortener.api.handler.statistics.exports.StatisticsExportHandler;
+import com.svenruppert.urlshortener.api.handler.statistics.imports.StatisticsImportHandler;
 import com.svenruppert.urlshortener.api.handler.urlmapping.*;
 import com.svenruppert.urlshortener.api.handler.urlmapping.imports.ImportApplyHandler;
 import com.svenruppert.urlshortener.api.handler.urlmapping.imports.ImportConflictsListHandler;
@@ -147,6 +149,8 @@ public class ShortenerServer
     serverAdmin.createContext(PATH_ADMIN_STATISTICS_TIMELINE, new StatisticsTimelineHandler(statisticsStore)).getFilters().add(new BlockBrowserPreflightFilter());
     serverAdmin.createContext(PATH_ADMIN_STATISTICS_CONFIG, new StatisticsConfigHandler(statisticsStore)).getFilters().add(new BlockBrowserPreflightFilter());
     serverAdmin.createContext(PATH_ADMIN_STATISTICS_DEBUG, new StatisticsDebugHandler(statisticsStore)).getFilters().add(new BlockBrowserPreflightFilter());
+    serverAdmin.createContext(PATH_ADMIN_STATISTICS_EXPORT, new StatisticsExportHandler(statisticsStore)).getFilters().add(new BlockBrowserPreflightFilter());
+    serverAdmin.createContext(PATH_ADMIN_STATISTICS_IMPORT, new StatisticsImportHandler(statisticsStore)).getFilters().add(new BlockBrowserPreflightFilter());
     logger().info("Statistics API handlers registered");
 
 

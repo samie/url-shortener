@@ -66,6 +66,12 @@
             <artifactId>client</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.svenruppert</groupId>
+            <artifactId>security-for-flow</artifactId>
+            <version>00.50.00</version>
+        </dependency>
+
     </dependencies>
 
 

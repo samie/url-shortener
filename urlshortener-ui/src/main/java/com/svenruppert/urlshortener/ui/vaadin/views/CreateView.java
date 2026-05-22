@@ -1,10 +1,14 @@
 package com.svenruppert.urlshortener.ui.vaadin.views;
 
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.svenruppert.urlshortener.client.URLShortenerClient;
 import com.svenruppert.urlshortener.core.urlmapping.ShortenRequest;
 import com.svenruppert.urlshortener.core.validation.UrlValidator;
 import com.svenruppert.urlshortener.ui.vaadin.MainLayout;
+import com.svenruppert.urlshortener.ui.vaadin.security.AppRole;
+import com.svenruppert.urlshortener.ui.vaadin.security.VisibleFor;
 import com.svenruppert.urlshortener.ui.vaadin.components.MultiAliasEditorStrict;
 import com.svenruppert.urlshortener.ui.vaadin.tools.I18nSupport;
 import com.svenruppert.urlshortener.ui.vaadin.tools.UrlShortenerClientFactory;
@@ -33,6 +37,7 @@ import java.util.Optional;
 import static com.svenruppert.urlshortener.core.DefaultValues.SHORTCODE_BASE_URL;
 
 @Route(value = CreateView.PATH, layout = MainLayout.class)
+@VisibleFor(AppRole.USER)
 @CssImport("./styles/create-view.css")
 public class CreateView extends VerticalLayout implements HasLogger, I18nSupport {
 

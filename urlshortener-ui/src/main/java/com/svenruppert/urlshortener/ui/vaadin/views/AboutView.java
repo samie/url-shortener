@@ -1,6 +1,10 @@
 package com.svenruppert.urlshortener.ui.vaadin.views;
 
+
+
 import com.svenruppert.urlshortener.ui.vaadin.MainLayout;
+import com.svenruppert.urlshortener.ui.vaadin.security.AppRole;
+import com.svenruppert.urlshortener.ui.vaadin.security.VisibleFor;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
@@ -16,6 +20,7 @@ import com.vaadin.flow.router.Route;
 import org.jspecify.annotations.NonNull;
 
 @Route(value = AboutView.PATH, layout = MainLayout.class)
+@VisibleFor(AppRole.USER)
 @CssImport("./styles/about-view.css")
 public class AboutView
     extends Composite<Div> {

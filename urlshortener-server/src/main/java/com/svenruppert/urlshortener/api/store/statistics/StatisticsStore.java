@@ -2,6 +2,7 @@ package com.svenruppert.urlshortener.api.store.statistics;
 
 import com.svenruppert.urlshortener.core.statistics.StatisticsConfig;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 /**
@@ -49,5 +50,18 @@ public interface StatisticsStore extends StatisticsReader, StatisticsWriter {
    */
   default Map<String, Object> getDebugInfo() {
     return Map.of("message", "Debug info not implemented for this store type");
+  }
+
+  /**
+   * Rebuilds hourly and daily aggregates from raw redirect events for the
+   * inclusive date range. Existing aggregates within that range are
+   * discarded first to avoid double counting; raw events stay untouched.
+   *
+   * @param from inclusive start date
+   * @param to   inclusive end date
+   * @return number of (shortCode, date) buckets rebuilt
+   */
+  default long reaggregate(LocalDate from, LocalDate to) {
+    return 0;
   }
 }

@@ -1,5 +1,9 @@
 package com.svenruppert.urlshortener.core.statistics;
 
+
+
+
+
 /**
  * Response DTO for statistics configuration queries.
  */

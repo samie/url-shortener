@@ -7,6 +7,7 @@ import com.svenruppert.urlshortener.core.statistics.RedirectEvent;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Interface for querying redirect statistics.
@@ -115,4 +116,14 @@ public interface StatisticsReader {
    * @return true if the date is within the hot window
    */
   boolean isInHotWindow(LocalDate date);
+
+  /**
+   * Returns all known short codes that have any statistics data
+   * (raw events or aggregates) recorded.
+   *
+   * @return set of known short codes (may be empty, never null)
+   */
+  default Set<String> getKnownShortCodes() {
+    return Set.of();
+  }
 }

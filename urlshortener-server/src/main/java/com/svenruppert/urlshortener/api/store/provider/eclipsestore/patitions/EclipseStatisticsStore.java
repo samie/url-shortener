@@ -75,6 +75,46 @@ public class EclipseStatisticsStore
     }
   }
 
+  @Override
+  public long deleteEventsInRange(String shortCode, LocalDate from, LocalDate to) {
+    if (from.isAfter(to)) {
+      return 0;
+    }
+    flush();
+    Set<String> targets = (shortCode == null)
+        ? new HashSet<>(dataRoot().redirectEvents().keySet())
+        : Set.of(shortCode);
+
+    long removed = 0;
+    boolean structureChanged = false;
+    for (String code : targets) {
+      var perDate = dataRoot().redirectEvents().get(code);
+      if (perDate == null) continue;
+
+      LocalDate current = from;
+      while (!current.isAfter(to)) {
+        var bucket = perDate.remove(current.toString());
+        if (bucket != null) {
+          removed += bucket.size();
+          structureChanged = true;
+        }
+        current = current.plusDays(1);
+      }
+      if (perDate.isEmpty()) {
+        dataRoot().redirectEvents().remove(code);
+      } else {
+        storage.store(perDate);
+      }
+    }
+
+    if (structureChanged) {
+      storage.store(dataRoot().redirectEvents());
+      logger().info("Deleted {} events in range [{}..{}] for shortCode={}",
+                    removed, from, to, shortCode == null ? "<all>" : shortCode);
+    }
+    return removed;
+  }
+
   // ==================== StatisticsReader ====================
 
   @Override
@@ -219,7 +259,7 @@ public class EclipseStatisticsStore
     if (eventMap == null) {
       return Collections.emptyList();
     }
-    var events = eventMap.get(date);
+    var events = eventMap.get(date.toString());
     if (events == null) {
       return Collections.emptyList();
     }
@@ -247,16 +287,12 @@ public class EclipseStatisticsStore
 
     var eventMap = dataRoot().redirectEvents().get(shortCode);
     if (eventMap != null) {
-      var keySet = eventMap.keySet();
-      var allDates = keySet.stream().map(LocalDate::parse).toList();
-      dates.addAll(allDates);
+      eventMap.keySet().stream().map(LocalDate::parse).forEach(dates::add);
     }
 
     var dailyMap = dataRoot().dailyAggregates().get(shortCode);
     if (dailyMap != null) {
-      var keySet = eventMap.keySet();
-      var allDates = keySet.stream().map(LocalDate::parse).toList();
-      dates.addAll(allDates);
+      dailyMap.keySet().stream().map(LocalDate::parse).forEach(dates::add);
     }
 
     return new ArrayList<>(dates);
@@ -267,6 +303,15 @@ public class EclipseStatisticsStore
     LocalDate hotWindowStart = getHotWindowStart();
     LocalDate today = LocalDate.now(clock);
     return !date.isBefore(hotWindowStart) && !date.isAfter(today);
+  }
+
+  @Override
+  public Set<String> getKnownShortCodes() {
+    Set<String> codes = new TreeSet<>();
+    codes.addAll(dataRoot().redirectEvents().keySet());
+    codes.addAll(dataRoot().hourlyAggregates().keySet());
+    codes.addAll(dataRoot().dailyAggregates().keySet());
+    return codes;
   }
 
   // ==================== StatisticsStore ====================
@@ -295,6 +340,52 @@ public class EclipseStatisticsStore
     storage.store(dataRoot().redirectEvents());
     storage.store(dataRoot().hourlyAggregates());
     storage.store(dataRoot().dailyAggregates());
+  }
+
+  @Override
+  public long reaggregate(LocalDate from, LocalDate to) {
+    if (from.isAfter(to)) {
+      return 0;
+    }
+    flush();
+    Set<String> codes = new HashSet<>(dataRoot().redirectEvents().keySet());
+    codes.addAll(dataRoot().hourlyAggregates().keySet());
+    codes.addAll(dataRoot().dailyAggregates().keySet());
+
+    long buckets = 0;
+    for (String code : codes) {
+      var perDate = dataRoot().redirectEvents().get(code);
+      var hourlyMap = dataRoot().hourlyAggregates().get(code);
+      var dailyMap = dataRoot().dailyAggregates().get(code);
+
+      LocalDate current = from;
+      while (!current.isAfter(to)) {
+        String key = current.toString();
+        if (hourlyMap != null) hourlyMap.remove(key);
+        if (dailyMap != null) dailyMap.remove(key);
+
+        var bucket = (perDate != null) ? perDate.get(key) : null;
+        if (bucket != null && !bucket.isEmpty()) {
+          HourlyAggregate hourly = dataRoot().getOrCreateHourlyAggregate(code, current);
+          DailyAggregate daily = dataRoot().getOrCreateDailyAggregate(code, current);
+          for (RedirectEvent event : bucket) {
+            int hour = event.timestamp().atZone(ZoneOffset.UTC).getHour();
+            hourly.increment(hour);
+            daily.increment();
+          }
+          storage.store(hourly);
+          storage.store(daily);
+          buckets++;
+        }
+        current = current.plusDays(1);
+      }
+      if (hourlyMap != null) storage.store(hourlyMap);
+      if (dailyMap != null) storage.store(dailyMap);
+    }
+    storage.store(dataRoot().hourlyAggregates());
+    storage.store(dataRoot().dailyAggregates());
+    logger().info("Reaggregated {} buckets in range [{}..{}]", buckets, from, to);
+    return buckets;
   }
 
   @Override

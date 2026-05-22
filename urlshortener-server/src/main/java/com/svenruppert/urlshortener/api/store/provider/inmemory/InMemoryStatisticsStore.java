@@ -84,6 +84,35 @@ public class InMemoryStatisticsStore
     logger().debug("flush() called - no-op for in-memory store");
   }
 
+  @Override
+  public long deleteEventsInRange(String shortCode, LocalDate from, LocalDate to) {
+    if (from.isAfter(to)) {
+      return 0;
+    }
+    Set<String> targets = (shortCode == null)
+        ? new HashSet<>(events.keySet())
+        : Set.of(shortCode);
+
+    long removed = 0;
+    for (String code : targets) {
+      var perDate = events.get(code);
+      if (perDate == null) continue;
+
+      LocalDate current = from;
+      while (!current.isAfter(to)) {
+        var bucket = perDate.remove(current);
+        if (bucket != null) {
+          removed += bucket.size();
+        }
+        current = current.plusDays(1);
+      }
+      if (perDate.isEmpty()) {
+        events.remove(code);
+      }
+    }
+    return removed;
+  }
+
   // ============================================================================
   // StatisticsReader - Count queries
   // ============================================================================
@@ -253,6 +282,15 @@ public class InMemoryStatisticsStore
     return !date.isBefore(hotWindowStart);
   }
 
+  @Override
+  public Set<String> getKnownShortCodes() {
+    Set<String> codes = new TreeSet<>();
+    codes.addAll(events.keySet());
+    codes.addAll(hourlyAggregates.keySet());
+    codes.addAll(dailyAggregates.keySet());
+    return codes;
+  }
+
   // ============================================================================
   // StatisticsStore - Admin methods
   // ============================================================================
@@ -283,6 +321,50 @@ public class InMemoryStatisticsStore
     hourlyAggregates.remove(shortCode);
     dailyAggregates.remove(shortCode);
     logger().info("Removed all statistics for shortCode={}", shortCode);
+  }
+
+  @Override
+  public long reaggregate(LocalDate from, LocalDate to) {
+    if (from.isAfter(to)) {
+      return 0;
+    }
+    Set<String> codes = new HashSet<>(events.keySet());
+    codes.addAll(hourlyAggregates.keySet());
+    codes.addAll(dailyAggregates.keySet());
+
+    long buckets = 0;
+    for (String code : codes) {
+      var perDate = events.get(code);
+      var hourlyMap = hourlyAggregates.get(code);
+      var dailyMap = dailyAggregates.get(code);
+
+      LocalDate current = from;
+      while (!current.isAfter(to)) {
+        if (hourlyMap != null) hourlyMap.remove(current);
+        if (dailyMap != null) dailyMap.remove(current);
+
+        var bucket = (perDate != null) ? perDate.get(current) : null;
+        if (bucket != null && !bucket.isEmpty()) {
+          var hourly = hourlyAggregates
+              .computeIfAbsent(code, k -> new ConcurrentHashMap<>())
+              .computeIfAbsent(current, HourlyAggregate::new);
+          var daily = dailyAggregates
+              .computeIfAbsent(code, k -> new ConcurrentHashMap<>())
+              .computeIfAbsent(current, DailyAggregate::new);
+          for (RedirectEvent event : bucket) {
+            int hour = event.timestamp().atZone(ZoneOffset.UTC).getHour();
+            hourly.increment(hour);
+            daily.increment();
+          }
+          buckets++;
+        }
+        current = current.plusDays(1);
+      }
+      if (hourlyMap != null && hourlyMap.isEmpty()) hourlyAggregates.remove(code);
+      if (dailyMap != null && dailyMap.isEmpty()) dailyAggregates.remove(code);
+    }
+    logger().info("Reaggregated {} buckets in range [{}..{}]", buckets, from, to);
+    return buckets;
   }
 
   @Override

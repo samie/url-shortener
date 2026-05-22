@@ -1,7 +1,6 @@
 package com.svenruppert.urlshortener.api.store.urlmapping;
 
 import com.svenruppert.urlshortener.core.urlmapping.ShortUrlMapping;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +35,6 @@ public class UrlMappingFilterHelper {
     }
   }
 
-  @NotNull
   public static List<ShortUrlMapping> filterSortAndPage(UrlMappingFilter filter, Stream<ShortUrlMapping> valueStream) {
     List<ShortUrlMapping> valuesFilteredAndSorted = valueStream
         .filter(mapping -> matches(filter, mapping))
@@ -78,7 +76,6 @@ public class UrlMappingFilterHelper {
     return true;
   }
 
-  @NotNull
   private static Comparator<ShortUrlMapping> buildComparator(UrlMappingFilter filter) {
     if (filter == null) return NO_OP_COMPARATOR;
 

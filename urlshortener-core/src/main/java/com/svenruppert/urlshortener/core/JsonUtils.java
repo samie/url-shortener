@@ -1,8 +1,34 @@
 package com.svenruppert.urlshortener.core;
 
+/*-
+ * #%L
+ * core
+ * $Id:$
+ * $HeadURL:$
+ * %%
+ * Copyright (C) 2023 - 2026 Sven Ruppert
+ * %%
+ * Licensed under the EUPL, Version 1.1 or – as soon they will be
+ * approved by the European Commission - subsequent versions of the
+ * EUPL (the "Licence");
+ *
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ * http://ec.europa.eu/idabc/eupl5
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ * #L%
+ */
+
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.svenruppert.urlshortener.core.urlmapping.ShortenRequest;
-import org.jetbrains.annotations.NotNull;
 import tools.jackson.core.type.TypeReference;
 
 import java.io.BufferedReader;
@@ -44,7 +70,7 @@ public final class JsonUtils
     return toStringMap(JacksonJson.mapper().readValue(in, MAP_REF));
   }
 
-  @NotNull
+
   public static Map<String, String> parseJson(String json)
       throws IOException {
     if (json == null) throw new IOException("JSON is null");
@@ -52,7 +78,7 @@ public final class JsonUtils
     return toStringMap(JacksonJson.mapper().readValue(json, MAP_REF));
   }
 
-  @NotNull
+
   public static Stream<Map.Entry<String, String>> parseJsonToStream(String json)
       throws IOException {
     return parseJson(json).entrySet().stream();
@@ -163,7 +189,7 @@ public final class JsonUtils
     return shortCode;
   }
 
-  @NotNull
+
   public static String escape(String s) {
     if (s == null) return null;
 

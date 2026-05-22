@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin.tools;
 
+
+
 import com.vaadin.flow.server.VaadinSession;
 
 import java.util.List;
@@ -81,4 +83,3 @@ public final class LocaleSelection {
     return effective;
   }
 }
-

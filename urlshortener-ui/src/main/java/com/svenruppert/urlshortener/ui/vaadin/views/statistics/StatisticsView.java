@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin.views.statistics;
 
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.svenruppert.urlshortener.client.StatisticsClient;
 import com.svenruppert.urlshortener.client.URLShortenerClient;
@@ -7,6 +9,8 @@ import com.svenruppert.urlshortener.core.statistics.StatisticsCountResponse;
 import com.svenruppert.urlshortener.core.urlmapping.ShortUrlMapping;
 import com.svenruppert.urlshortener.core.urlmapping.UrlMappingListRequest;
 import com.svenruppert.urlshortener.ui.vaadin.MainLayout;
+import com.svenruppert.urlshortener.ui.vaadin.security.AppRole;
+import com.svenruppert.urlshortener.ui.vaadin.security.VisibleFor;
 import com.svenruppert.urlshortener.ui.vaadin.components.SearchBar;
 import com.svenruppert.urlshortener.ui.vaadin.tools.I18nSupport;
 import com.svenruppert.urlshortener.ui.vaadin.tools.StatisticsClientFactory;
@@ -23,11 +27,15 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.server.streams.DownloadResponse;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -35,12 +43,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.svenruppert.urlshortener.core.DefaultValues.APPLICATION_ZIP;
+
 /**
  * Statistics overview view showing all shortcodes with their redirect counts.
  * Uses SearchBar for filtering and StatisticsToolbar for date range/granularity.
  */
 @PageTitle("Statistics")
 @Route(value = StatisticsView.PATH, layout = MainLayout.class)
+@VisibleFor(AppRole.USER)
 @CssImport("./styles/statistics-view.css")
 public class StatisticsView
     extends VerticalLayout
@@ -64,6 +75,14 @@ public class StatisticsView
   private static final String K_PAGING_PREV = "statistics.paging.prev";
   private static final String K_PAGING_NEXT = "statistics.paging.next";
   private static final String K_DETAILS_TOOLTIP = "statistics.details.tooltip";
+  private static final String K_EXPORT = "statistics.export";
+  private static final String K_EXPORT_ANCHOR = "statistics.export.anchor";
+  private static final String K_EXPORT_TOOLTIP = "statistics.export.tooltip";
+  private static final String K_IMPORT = "statistics.import";
+  private static final String K_IMPORT_TOOLTIP = "statistics.import.tooltip";
+  private static final String K_DOWNLOAD_STARTED = "statistics.export.started";
+  private static final String K_DOWNLOAD_COMPLETED = "statistics.export.completed";
+  private static final String K_DOWNLOAD_FAILED = "statistics.export.failed";
 
   private final URLShortenerClient urlShortenerClient = UrlShortenerClientFactory.newInstance();
   private final StatisticsClient statisticsClient = StatisticsClientFactory.newInstance();
@@ -75,6 +94,10 @@ public class StatisticsView
   private final Button prevBtn = new Button();
   private final Button nextBtn = new Button();
   private final Text pageInfo = new Text("");
+
+  private final Button btnExport = new Button();
+  private final Button btnImport = new Button();
+  private final Anchor exportAnchor = initExportAnchor();
 
   private int currentPage = 1;
   private int totalCount = 0;
@@ -91,12 +114,71 @@ public class StatisticsView
     configureStatisticsToolbar();
     configureGrid();
     configurePagingBar();
+    configureExportImport();
     applyI18n();
 
-    add(searchBar, statisticsToolbar, grid, buildPagingBar());
+    add(buildExportImportBar(), searchBar, statisticsToolbar, grid, buildPagingBar());
 
     // Initial data load
     loadData();
+  }
+
+  private Anchor initExportAnchor() {
+    DownloadHandler handler = DownloadHandler.fromInputStream(_ -> {
+      LocalDate from = statisticsToolbar.getFromDate();
+      LocalDate to = statisticsToolbar.getToDate();
+      StatisticsClient.ExportZipDownload download =
+          statisticsClient.exportAsZipDownload(from, to, java.util.Set.of());
+      return new DownloadResponse(download.inputStreamFactory().get(),
+                                  download.filename(),
+                                  APPLICATION_ZIP,
+                                  -1);
+    })
+        .whenStart(() ->
+                       Notification.show(tr(K_DOWNLOAD_STARTED, "Download started"),
+                                         3000, Notification.Position.BOTTOM_START))
+        .whenComplete(success -> {
+          if (success) {
+            Notification.show(tr(K_DOWNLOAD_COMPLETED, "Download completed"),
+                              3000, Notification.Position.BOTTOM_START)
+                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+          } else {
+            Notification.show(tr(K_DOWNLOAD_FAILED, "Download failed"),
+                              3000, Notification.Position.BOTTOM_START)
+                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+          }
+        });
+
+    Anchor a = new Anchor(handler, "");
+    a.getElement().setAttribute("download", true);
+    a.getStyle().set("display", "none");
+    return a;
+  }
+
+  private void configureExportImport() {
+    btnExport.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+    btnExport.addClickListener(_ -> triggerExportDownload());
+
+    btnImport.addClickListener(_ -> openImportDialog());
+  }
+
+  private void triggerExportDownload() {
+    try {
+      exportAnchor.getElement().callJsFunction("click");
+    } catch (Exception ex) {
+      logger().warn("Statistics export failed", ex);
+      Notifications.operationFailed(ex);
+    }
+  }
+
+  private void openImportDialog() {
+    new StatisticsImportDialog(statisticsClient, this::loadData).open();
+  }
+
+  private HorizontalLayout buildExportImportBar() {
+    HorizontalLayout bar = new HorizontalLayout(btnExport, btnImport, exportAnchor);
+    bar.setAlignItems(FlexComponent.Alignment.CENTER);
+    return bar;
   }
 
   private void configureSearchBar() {
@@ -132,6 +214,14 @@ public class StatisticsView
   private void applyI18n() {
     prevBtn.setText(tr(K_PAGING_PREV, "Previous"));
     nextBtn.setText(tr(K_PAGING_NEXT, "Next"));
+
+    btnExport.setText(tr(K_EXPORT, "Export"));
+    btnExport.getElement().setAttribute("title",
+        tr(K_EXPORT_TOOLTIP, "Download all redirect events for the current date range as ZIP"));
+    btnImport.setText(tr(K_IMPORT, "Import"));
+    btnImport.getElement().setAttribute("title",
+        tr(K_IMPORT_TOOLTIP, "Import a statistics ZIP and rebuild aggregates"));
+    exportAnchor.setText(tr(K_EXPORT_ANCHOR, "Download"));
 
     grid.getColumnByKey("shortcode").setHeader(tr(K_COL_SHORTCODE, "Shortcode"));
     grid.getColumnByKey("url").setHeader(tr(K_COL_URL, "Original URL"));

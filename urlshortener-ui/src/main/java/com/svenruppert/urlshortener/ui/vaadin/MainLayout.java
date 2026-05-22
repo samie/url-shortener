@@ -1,9 +1,10 @@
 package com.svenruppert.urlshortener.ui.vaadin;
 
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.svenruppert.urlshortener.ui.vaadin.components.StoreIndicator;
 import com.svenruppert.urlshortener.ui.vaadin.security.LoginConfig;
-import com.svenruppert.urlshortener.ui.vaadin.security.SessionAuth;
 import com.svenruppert.urlshortener.ui.vaadin.tools.AdminClientFactory;
 import com.svenruppert.urlshortener.ui.vaadin.tools.I18nSupport;
 import com.svenruppert.urlshortener.ui.vaadin.tools.LocaleSelection;
@@ -14,6 +15,7 @@ import com.svenruppert.urlshortener.ui.vaadin.views.YoutubeView;
 import com.svenruppert.urlshortener.ui.vaadin.views.login.LoginView;
 import com.svenruppert.urlshortener.ui.vaadin.views.overview.OverviewView;
 import com.svenruppert.urlshortener.ui.vaadin.views.statistics.StatisticsView;
+import com.svenruppert.vaadin.security.authorization.api.SessionAccessor;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -29,8 +31,6 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
@@ -41,7 +41,7 @@ import static com.vaadin.flow.component.icon.VaadinIcon.*;
 @CssImport("./styles/main-layout.css")
 public class MainLayout
     extends AppLayout
-    implements BeforeEnterObserver, HasLogger, I18nSupport {
+    implements HasLogger, I18nSupport {
 
   private static final String C_MAINLAYOUT = "mainlayout";
   private static final String C_APP_TITLE = "title";
@@ -60,7 +60,6 @@ public class MainLayout
   private static final String K_NAV_YOUTUBE = "nav.youtube";
   private static final String K_NAV_ABOUT = "nav.about";
 
-  //  private final ComboBox<Locale> languageSelector = new ComboBox<>();
   Component languageSwitch = createLanguageSwitch();
 
 
@@ -81,7 +80,7 @@ public class MainLayout
 
     var adminClient = AdminClientFactory.newInstance();
     var storeIndicator = new StoreIndicator(adminClient);
-    storeIndicator.addClassName(C_RIGHT); // push to right
+    storeIndicator.addClassName(C_RIGHT);
 
     HorizontalLayout headerRow;
 
@@ -90,8 +89,8 @@ public class MainLayout
 
     if (LoginConfig.isLoginEnabled()) {
       var logoutButton = new Button(tr(K_LOGOUT, "Logout"), _ -> {
-        SessionAuth.clearAuthentication();
-        UI.getCurrent().getPage().setLocation("/" + LoginView.PATH);
+        SessionAccessor.deleteCurrentSubject();
+        UI.getCurrent().navigate(LoginView.class);
       });
       logoutButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
       headerRow = new HorizontalLayout(toggle, appTitle, spacer, languageSwitch, storeIndicator, logoutButton);
@@ -128,23 +127,6 @@ public class MainLayout
     );
     return sideNav;
   }
-
-  @Override
-  public void beforeEnter(BeforeEnterEvent event) {
-    if (!LoginConfig.isLoginEnabled()) return;
-
-    logger().info("beforeEnter target={} authenticated={}",
-                  event.getNavigationTarget().getSimpleName(),
-                  SessionAuth.isAuthenticated());
-
-    if (event.getNavigationTarget().equals(LoginView.class)) return;
-
-    if (!SessionAuth.isAuthenticated()) {
-      logger().info("beforeEnter.. isAuthenticated()==false - reroute to LoginView");
-      event.rerouteTo(LoginView.class);
-    }
-  }
-
 
   private Component createLanguageSwitch() {
 
@@ -189,7 +171,6 @@ public class MainLayout
 
     b.addClickListener(e -> switchLocale(locale));
 
-    // Tooltip (optional, aber nice)
     b.getElement().setProperty("title", locale.getLanguage().toUpperCase());
 
     return b;

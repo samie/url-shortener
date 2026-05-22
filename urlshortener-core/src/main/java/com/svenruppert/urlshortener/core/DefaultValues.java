@@ -1,5 +1,9 @@
 package com.svenruppert.urlshortener.core;
 
+
+
+
+
 public final class DefaultValues {
   //TODO - must be editable by user
   public static final String SHORTCODE_BASE_URL = "https://3g3.eu/";
@@ -60,6 +64,14 @@ public final class DefaultValues {
   public static final String PATH_ADMIN_STATISTICS_DAILY = PATH_ADMIN_STATISTICS + "/daily";
   public static final String PATH_ADMIN_STATISTICS_CONFIG = PATH_ADMIN_STATISTICS + "/config";
   public static final String PATH_ADMIN_STATISTICS_DEBUG = PATH_ADMIN_STATISTICS + "/debug";
+  public static final String PATH_ADMIN_STATISTICS_EXPORT = PATH_ADMIN_STATISTICS + "/export";
+  public static final String PATH_ADMIN_STATISTICS_IMPORT = PATH_ADMIN_STATISTICS + "/import";
+
+  public static final String STATISTICS_EXPORT_FORMAT_VERSION = "1";
+  public static final String STATISTICS_EXPORT_FILE_NAME = "urlshortener-statistics-export";
+  public static final String STATISTICS_EXPORT_NDJSON_ENTRY = STATISTICS_EXPORT_FILE_NAME + ".ndjson";
+  public static final long STATISTICS_IMPORT_MAX_ZIP_BYTES = 500L * 1024 * 1024;
+  public static final long STATISTICS_IMPORT_MAX_NDJSON_BYTES = 4L * 1024 * 1024 * 1024;
 
 
   public static final String PATTERN_DATE_TIME = "yyyy.MM.dd HH:mm";

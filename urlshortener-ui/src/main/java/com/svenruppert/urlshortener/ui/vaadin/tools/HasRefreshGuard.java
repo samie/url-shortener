@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin.tools;
 
+
+
 public interface HasRefreshGuard {
 
   /**

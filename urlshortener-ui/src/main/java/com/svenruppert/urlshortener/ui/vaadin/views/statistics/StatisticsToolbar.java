@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin.views.statistics;
 
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.svenruppert.urlshortener.ui.vaadin.tools.I18nSupport;
 import com.vaadin.flow.component.Composite;

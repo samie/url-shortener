@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.svenruppert</groupId>
         <artifactId>dependencies</artifactId>
-        <version>06.00.16</version>
+        <version>06.01.00</version>
     </parent>
 
     <groupId>com.svenruppert.urlshortener</groupId>
@@ -56,15 +56,15 @@
     </issueManagement>
     <licenses>
         <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <name>European Union Public Licence, Version 1.2</name>
+            <url>https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12</url>
             <distribution>repo</distribution>
-            <comments>A business-friendly OSS license</comments>
+            <comments>A European copyleft open-source software license</comments>
         </license>
     </licenses>
 
     <properties>
-
+        <licenseName>European Union Public Licence, Version 1.2</licenseName>
         <app.main.class>com.svenruppert.rest.Application</app.main.class>
 
         <deploy-repo-url>https://repo.maven.apache.org/maven2/</deploy-repo-url>
@@ -238,7 +238,31 @@
 
     <build>
         <plugins>
-
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <verbose>true</verbose>
+                    <addSvnKeyWords>true</addSvnKeyWords>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>first</id>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+<!--                        <phase>process-sources</phase>-->
+                        <phase>none</phase>
+                        <configuration>
+                            <licenseName>eupl_v1_1</licenseName>
+                            <roots>
+                                <root>src/main/java</root>
+                                <root>src/test</root>
+                            </roots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
@@ -332,7 +356,7 @@
                 <configuration>
                     <threads>1</threads>
                     <outputFormats>
-<!--                        <outputFormat>XML</outputFormat>-->
+                        <!--                        <outputFormat>XML</outputFormat>-->
                         <outputFormat>HTML</outputFormat>
                     </outputFormats>
                     <targetClasses>

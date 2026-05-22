@@ -1,11 +1,16 @@
 package com.svenruppert.urlshortener.ui.vaadin.views;
 
+
+
 import com.svenruppert.urlshortener.ui.vaadin.MainLayout;
+import com.svenruppert.urlshortener.ui.vaadin.security.AppRole;
+import com.svenruppert.urlshortener.ui.vaadin.security.VisibleFor;
 import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 
 @Route(value = YoutubeView.PATH, layout = MainLayout.class)
+@VisibleFor(AppRole.USER)
 public class YoutubeView
     extends VerticalLayout {
 

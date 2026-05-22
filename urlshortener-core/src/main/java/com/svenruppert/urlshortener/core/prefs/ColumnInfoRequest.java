@@ -1,5 +1,9 @@
 package com.svenruppert.urlshortener.core.prefs;
 
+
+
+
+
 /**
  * Represents a request to retrieve column information for a specific user and view.
  * This class defines the minimal required input data to fetch column-related configuration

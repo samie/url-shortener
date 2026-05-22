@@ -1,5 +1,9 @@
 package com.svenruppert.urlshortener.core;
 
+
+
+
+
 public final class Base62Encoder {
 
   private static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";

@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin.views.statistics;
 
+
+
 /**
  * Defines the granularity for statistics aggregation.
  */

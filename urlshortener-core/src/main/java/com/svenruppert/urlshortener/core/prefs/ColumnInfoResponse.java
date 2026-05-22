@@ -1,5 +1,9 @@
 package com.svenruppert.urlshortener.core.prefs;
 
+
+
+
+
 import java.util.Map;
 
 public record ColumnInfoResponse(

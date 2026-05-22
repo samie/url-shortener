@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin.tools;
 
+
+
 import com.vaadin.flow.component.Component;
 
 public interface I18nSupport {

@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin.views.statistics;
 
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.svenruppert.urlshortener.client.StatisticsClient;
 import com.svenruppert.urlshortener.client.URLShortenerClient;
@@ -8,6 +10,8 @@ import com.svenruppert.urlshortener.core.statistics.StatisticsCountResponse;
 import com.svenruppert.urlshortener.core.statistics.StatisticsTimelineResponse;
 import com.svenruppert.urlshortener.core.urlmapping.ShortUrlMapping;
 import com.svenruppert.urlshortener.ui.vaadin.MainLayout;
+import com.svenruppert.urlshortener.ui.vaadin.security.AppRole;
+import com.svenruppert.urlshortener.ui.vaadin.security.VisibleFor;
 import com.svenruppert.urlshortener.ui.vaadin.tools.I18nSupport;
 import com.svenruppert.urlshortener.ui.vaadin.tools.StatisticsClientFactory;
 import com.svenruppert.urlshortener.ui.vaadin.tools.UrlShortenerClientFactory;
@@ -38,6 +42,7 @@ import java.util.*;
  */
 @PageTitle("Statistics Detail")
 @Route(value = StatisticsDetailView.PATH, layout = MainLayout.class)
+@VisibleFor(AppRole.USER)
 @CssImport("./styles/statistics-detail-view.css")
 public class StatisticsDetailView
     extends VerticalLayout

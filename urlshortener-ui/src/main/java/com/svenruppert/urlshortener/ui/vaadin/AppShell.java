@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin;
 
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Push;

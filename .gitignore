@@ -45,3 +45,6 @@ build/
 /data/
 /.claude/
 /.ai/
+/urlshortener-server/data/
+/urlshortener-ui/src/main/bundles/dev.bundle
+/urlshortener-ui/src/main/bundles/prod.bundle

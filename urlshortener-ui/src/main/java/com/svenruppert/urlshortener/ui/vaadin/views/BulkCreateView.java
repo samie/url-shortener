@@ -1,5 +1,7 @@
 package com.svenruppert.urlshortener.ui.vaadin.views;
 
+
+
 import com.svenruppert.dependencies.core.logger.HasLogger;
 import com.svenruppert.urlshortener.client.URLShortenerClient;
 import com.svenruppert.urlshortener.core.urlmapping.BulkShortenRequest;
@@ -10,6 +12,8 @@ import com.svenruppert.urlshortener.core.urlmapping.BulkValidateResponse.Existin
 import com.svenruppert.urlshortener.core.urlmapping.BulkValidateResponse.ValidationItemResult;
 import com.svenruppert.urlshortener.core.urlmapping.BulkValidateResponse.ValidationStatus;
 import com.svenruppert.urlshortener.ui.vaadin.MainLayout;
+import com.svenruppert.urlshortener.ui.vaadin.security.AppRole;
+import com.svenruppert.urlshortener.ui.vaadin.security.VisibleFor;
 import com.svenruppert.urlshortener.ui.vaadin.tools.I18nSupport;
 import com.svenruppert.urlshortener.ui.vaadin.tools.UiLinks;
 import com.svenruppert.urlshortener.ui.vaadin.tools.UrlShortenerClientFactory;
@@ -56,6 +60,7 @@ import java.util.stream.Collectors;
  * automatic re-validation of the edited row) and remove rows at any time.
  */
 @Route(value = BulkCreateView.PATH, layout = MainLayout.class)
+@VisibleFor(AppRole.USER)
 public class BulkCreateView extends VerticalLayout implements HasLogger, I18nSupport {
 
   public static final String PATH = "bulk-create";
