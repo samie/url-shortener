@@ -48,3 +48,9 @@ build/
 /urlshortener-server/data/
 /urlshortener-ui/src/main/bundles/dev.bundle
 /urlshortener-ui/src/main/bundles/prod.bundle
+.idea
+.certs
+
+### k8s per-target env files (hold host/domain/email); keep templates ###
+k8s/env/*.env
+!k8s/env/*.env.example
