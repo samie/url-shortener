@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urlshortener-ui
+  namespace: urlshortener
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: urlshortener-ui
+  template:
+    metadata:
+      labels:
+        app: urlshortener-ui
+    spec:
+      containers:
+        - name: urlshortener-ui
+          image: urlshortener-ui:latest
+          # images are side-loaded into containerd via upload.sh; there
+          # is no registry, so a pull can only ever fetch garbage - forbid it
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8080
+          # tcpSocket probe: a listening HTTP port means Jetty is up. Keeps
+          # `rollout status` honest without assuming a health endpoint.
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          env:
+            - name: ADMIN_SERVER_URL
+              value: "http://urlshortener-admin:9090"
+            - name: REDIRECT_SERVER_URL
+              value: "http://urlshortener-redirect:8081"
+            - name: SHORTCODE_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: urlshortener-config
+                  key: SHORTCODE_BASE_URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: urlshortener-ui
+  namespace: urlshortener
+  annotations:
+    # Vaadin keeps UI state in the pod's HTTP session - Traefik must route each
+    # user to the same pod once replicas > 1 (Traefik targets pod IPs directly,
+    # so Service sessionAffinity would be ignored)
+    traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.name: "urlshortener-ui-sticky"
+    # not Secure-flagged: local mode is served over plain HTTP and the cookie
+    # only carries an opaque backend reference
+    traefik.ingress.kubernetes.io/service.sticky.cookie.secure: "false"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.httponly: "true"
+spec:
+  selector:
+    app: urlshortener-ui
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urlshortener-server
+  namespace: urlshortener
+spec:
+  replicas: 1
+  # EclipseStore is single-writer (file lock on the data directory) - never
+  # run old and new pod against the volume at the same time
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: urlshortener-server
+  template:
+    metadata:
+      labels:
+        app: urlshortener-server
+    spec:
+      containers:
+        - name: urlshortener-server
+          image: urlshortener-server:latest
+          # images are side-loaded into containerd via upload.sh; there
+          # is no registry, so a pull can only ever fetch garbage - forbid it
+          imagePullPolicy: Never
+          ports:
+            - name: admin
+              containerPort: 9090
+            - name: redirect
+              containerPort: 8081
+          # tcpSocket (not httpGet) so no assumption about a health endpoint -
+          # a listening admin port means the server has started. Makes
+          # `rollout status` wait for real readiness instead of just "Running".
+          readinessProbe:
+            tcpSocket:
+              port: admin
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: admin
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: urlshortener-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: urlshortener-data
+  namespace: urlshortener
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: urlshortener-admin
+  namespace: urlshortener
+spec:
+  selector:
+    app: urlshortener-server
+  ports:
+    - name: admin
+      port: 9090
+      targetPort: admin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: urlshortener-redirect
+  namespace: urlshortener
+spec:
+  selector:
+    app: urlshortener-server
+  ports:
+    - name: redirect
+      port: 8081
+      targetPort: redirect

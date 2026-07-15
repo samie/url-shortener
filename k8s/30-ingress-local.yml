@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: urlshortener-config
+  namespace: urlshortener
+data:
+  # public base for short links shown in the UI. Defaults to http://localhost/
+  # (correct when browsing from the node itself). Override for access from other
+  # machines: SHORTCODE_BASE_URL=http://<node-ip>/ ./k8s/deploy.sh <host> local
+  SHORTCODE_BASE_URL: "__SHORTCODE_BASE_URL__"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: urlshortener
+  namespace: urlshortener
+  annotations:
+    # UI session stickiness for ingress-nginx (Traefik reads the equivalent
+    # annotations on the urlshortener-ui Service instead; each controller
+    # ignores the other's). Applies to the whole Ingress, so the stateless
+    # redirect backend also gets a sticky cookie - harmless, it ignores it.
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+    nginx.ingress.kubernetes.io/session-cookie-name: "urlshortener-ui-sticky"
+spec:
+  ingressClassName: public
+  rules:
+    # no host: catch-all - works as http://localhost/, via the node IP, or any
+    # other name that resolves to the node; plain HTTP, no cert required
+    - http:
+        paths:
+          - path: /management
+            pathType: Prefix
+            backend:
+              service:
+                name: urlshortener-ui
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: urlshortener-redirect
+                port:
+                  number: 8081

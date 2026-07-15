@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: urlshortener-config
+  namespace: urlshortener
+data:
+  # public base for short links shown in the UI. Rendered by deploy.sh from the
+  # DOMAIN you pass in (defaults to https://$DOMAIN/); no manual edit needed.
+  SHORTCODE_BASE_URL: "__SHORTCODE_BASE_URL__"
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    # __ACME_EMAIL__ is filled in by deploy.sh from the ACME_EMAIL variable
+    email: __ACME_EMAIL__
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-account-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: public
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: urlshortener
+  namespace: urlshortener
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # UI session stickiness for ingress-nginx (Traefik reads the equivalent
+    # annotations on the urlshortener-ui Service instead; each controller
+    # ignores the other's). Applies to the whole Ingress, so the stateless
+    # redirect backend also gets a sticky cookie - harmless, it ignores it.
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+    nginx.ingress.kubernetes.io/session-cookie-name: "urlshortener-ui-sticky"
+spec:
+  ingressClassName: public
+  tls:
+    # __DOMAIN__ is filled in by deploy.sh from the DOMAIN variable, in all
+    # three places below - edit the variable, never this file
+    - hosts:
+        - __DOMAIN__
+      secretName: urlshortener-tls
+  rules:
+    # ingress-nginx serves a TLS cert only for hosts that appear here; a
+    # host-less catch-all rule would leave urlshortener-tls unattached and fall
+    # back to the controller's self-signed "Fake Certificate"
+    - host: __DOMAIN__
+      http:
+        paths:
+          - path: /management
+            pathType: Prefix
+            backend:
+              service:
+                name: urlshortener-ui
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: urlshortener-redirect
+                port:
+                  number: 8081
