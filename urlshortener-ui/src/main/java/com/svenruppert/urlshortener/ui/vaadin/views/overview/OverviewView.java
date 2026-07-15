@@ -467,7 +467,7 @@ public class OverviewView
           copy.addThemeVariants(LUMO_TERTIARY_INLINE);
           copy.getElement().setProperty("title", tr(K_COPY_SHORTURL_TOOLTIP, "Copy ShortUrl"));
           copy.addClickListener(_ -> {
-            var url = SHORTCODE_BASE_URL + m.shortCode();
+            var url = shortcodeBaseUrl() + m.shortCode();
             UiActions.copyToClipboard(url);
             Notifications.shortCodeCopied();
           });

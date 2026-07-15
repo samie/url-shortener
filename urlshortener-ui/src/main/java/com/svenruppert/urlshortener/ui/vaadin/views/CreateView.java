@@ -34,7 +34,7 @@ import java.time.*;
 import java.util.List;
 import java.util.Optional;
 
-import static com.svenruppert.urlshortener.core.DefaultValues.SHORTCODE_BASE_URL;
+import static com.svenruppert.urlshortener.core.DefaultValues.shortcodeBaseUrl;
 
 @Route(value = CreateView.PATH, layout = MainLayout.class)
 @VisibleFor(AppRole.USER)
@@ -129,7 +129,7 @@ public class CreateView extends VerticalLayout implements HasLogger, I18nSupport
         .bind(ShortenRequest::getUrl, ShortenRequest::setUrl);
 
     var editor = new MultiAliasEditorStrict(
-        SHORTCODE_BASE_URL,
+        shortcodeBaseUrl(),
         alias -> {
           try {
             return urlShortenerClient.resolveShortcode(alias) == null;

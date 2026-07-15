@@ -17,6 +17,8 @@ import com.svenruppert.urlshortener.ui.vaadin.security.VisibleFor;
 import com.svenruppert.urlshortener.ui.vaadin.tools.I18nSupport;
 import com.svenruppert.urlshortener.ui.vaadin.tools.UiLinks;
 import com.svenruppert.urlshortener.ui.vaadin.tools.UrlShortenerClientFactory;
+
+import static com.svenruppert.urlshortener.core.DefaultValues.shortcodeBaseUrl;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -605,7 +607,7 @@ public class BulkCreateView extends VerticalLayout implements HasLogger, I18nSup
       // Enriched display: show active/expiry status + protocol variant warning
       for (final ExistingShortlinkInfo info : infos) {
         final String fullUrl =
-            com.svenruppert.urlshortener.core.DefaultValues.SHORTCODE_BASE_URL + info.getShortCode();
+            shortcodeBaseUrl() + info.getShortCode();
 
         final var linkRow = new HorizontalLayout();
         linkRow.setSpacing(false);
@@ -645,7 +647,7 @@ public class BulkCreateView extends VerticalLayout implements HasLogger, I18nSup
       // Fallback: just show links (no enriched info available)
       for (final String code : shortCodes) {
         final String fullUrl =
-            com.svenruppert.urlshortener.core.DefaultValues.SHORTCODE_BASE_URL + code;
+            shortcodeBaseUrl() + code;
         final var link = new Anchor(fullUrl, fullUrl);
         link.setTarget("_blank");
         content.add(link);

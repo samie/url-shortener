@@ -29,7 +29,6 @@ import com.svenruppert.urlshortener.api.store.urlmapping.UrlMappingStore;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Clock;
-import java.util.Arrays;
 import java.util.concurrent.Executors;
 
 import static com.svenruppert.urlshortener.core.DefaultValues.*;
@@ -42,27 +41,25 @@ public class ShortenerServer
 
   public static void main(String[] args)
       throws IOException {
-    // Defaults (Fallbacks)
-    String host = DEFAULT_SERVER_HOST;
-    int port = DEFAULT_SERVER_PORT;
-    HasLogger.staticLogger().info("Main called with arguments: {}", Arrays.toString(args));
-
-    // Read parameters from CLI
-    if (args.length > 0 && !args[0].isBlank()) {
-      host = args[0].trim();
-      HasLogger.staticLogger().info("Host is {}", host);
-    }
-    if (args.length > 1) {
-      try {
-        port = Integer.parseInt(args[1].trim());
-      } catch (NumberFormatException e) {
-        HasLogger.staticLogger().warn("Invalid port argument: {} - using default {}", args[1], port);
-      }
-    }
-
+    // Configuration via environment - defaults match a plain localhost run
+    String host = System.getenv().getOrDefault("REDIRECT_SERVER_HOST", DEFAULT_SERVER_HOST);
+    int port = envInt("REDIRECT_SERVER_PORT", DEFAULT_SERVER_PORT);
 
     boolean persistent = true;
     new ShortenerServer().init(host, port, persistent);
+  }
+
+  private static int envInt(String name, int fallback) {
+    String value = System.getenv(name);
+    if (value == null || value.isBlank()) {
+      return fallback;
+    }
+    try {
+      return Integer.parseInt(value.trim());
+    } catch (NumberFormatException e) {
+      HasLogger.staticLogger().warn("Invalid {} value: {} - using default {}", name, value, fallback);
+      return fallback;
+    }
   }
 
   public void init()
@@ -118,12 +115,14 @@ public class ShortenerServer
       // statisticsStore remains null for in-memory mode
     }
 
+    String adminHost = System.getenv().getOrDefault("ADMIN_SERVER_HOST", ADMIN_SERVER_HOST);
+    int adminPort = envInt("ADMIN_SERVER_PORT", ADMIN_SERVER_PORT);
     logger().info("Starting URL Shortener server (redirect) with parameters: host={}, port={}", hostRedirect, portRedirect);
     this.serverRedirect = HttpServer.create(new InetSocketAddress(hostRedirect, portRedirect), 0);
     serverRedirect.createContext(PATH_REDIRECT, new RedirectHandler(urlMappingStore, statisticsStore));
 
-    logger().info("Starting URL Shortener server (admin) with parameters: host={}, port={}", ADMIN_SERVER_HOST, ADMIN_SERVER_PORT);
-    this.serverAdmin = HttpServer.create(new InetSocketAddress(ADMIN_SERVER_HOST, ADMIN_SERVER_PORT), 0);
+    logger().info("Starting URL Shortener server (admin) with parameters: host={}, port={}", adminHost, adminPort);
+    this.serverAdmin = HttpServer.create(new InetSocketAddress(adminHost, adminPort), 0);
     serverAdmin.createContext(PATH_ADMIN_VALIDATE_BULK, new BulkValidateHandler(urlMappingStore)).getFilters().add(new BlockBrowserPreflightFilter());
     serverAdmin.createContext(PATH_ADMIN_SHORTEN_BULK, new BulkShortenHandler(urlMappingStore)).getFilters().add(new BlockBrowserPreflightFilter());
     serverAdmin.createContext(PATH_ADMIN_SHORTEN, new ShortenHandler(urlMappingStore)).getFilters().add(new BlockBrowserPreflightFilter());

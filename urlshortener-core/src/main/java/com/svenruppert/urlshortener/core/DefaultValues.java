@@ -5,8 +5,16 @@ package com.svenruppert.urlshortener.core;
 
 
 public final class DefaultValues {
-  //TODO - must be editable by user
   public static final String SHORTCODE_BASE_URL = "https://3g3.eu/";
+
+  /**
+   * Public base for displayed short links: env SHORTCODE_BASE_URL,
+   * falling back to {@link #SHORTCODE_BASE_URL}, always with trailing slash.
+   */
+  public static String shortcodeBaseUrl() {
+    String base = System.getenv().getOrDefault("SHORTCODE_BASE_URL", SHORTCODE_BASE_URL);
+    return base.endsWith("/") ? base : base + "/";
+  }
 
   public static final int ADMIN_SERVER_PORT = 9090;
   public static final String ADMIN_SERVER_HOST = "localhost";

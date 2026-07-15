@@ -67,7 +67,9 @@ public class URLShortenerClient implements HasLogger {
   }
 
   public URLShortenerClient() {
-    this(ADMIN_SERVER_URL, DEFAULT_SERVER_URL);
+    String adminUrl    = System.getenv().getOrDefault("ADMIN_SERVER_URL", ADMIN_SERVER_URL);
+    String redirectUrl = System.getenv().getOrDefault("REDIRECT_SERVER_URL", DEFAULT_SERVER_URL);
+    this(adminUrl, redirectUrl);
   }
 
   private static String readAllAsString(InputStream is) throws IOException {

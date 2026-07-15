@@ -40,7 +40,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.svenruppert.urlshortener.core.DefaultValues.SHORTCODE_BASE_URL;
+import static com.svenruppert.urlshortener.core.DefaultValues.shortcodeBaseUrl;
 import static com.svenruppert.urlshortener.ui.vaadin.components.ExpiryBadgeFactory.computeStatusText;
 import static com.svenruppert.urlshortener.ui.vaadin.tools.UiActions.copyToClipboard;
 
@@ -284,7 +284,7 @@ public class DetailsDialog
     });
 
     copyShortBtn.addClickListener(_ -> {
-      var shortURL = SHORTCODE_BASE_URL + shortCode;
+      var shortURL = shortcodeBaseUrl() + shortCode;
       copyToClipboard(shortURL);
       fireEvent(new CopyShortcodeEvent(this, shortURL));
       Notifications.shortCodeCopied();
@@ -360,7 +360,7 @@ public class DetailsDialog
     dlg.setCloseOnOutsideClick(false);
 
     var editor = new MultiAliasEditorStrict(
-        SHORTCODE_BASE_URL,
+        shortcodeBaseUrl(),
         alias -> {
           try {
             return client.resolveShortcode(alias) == null;

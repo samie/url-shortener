@@ -11,6 +11,7 @@ public class AdminClientFactory {
   }
 
   public static AdminClient newInstance() {
-    return new AdminClient(DefaultValues.ADMIN_SERVER_URL);
+    String adminUrl = System.getenv().getOrDefault("ADMIN_SERVER_URL", DefaultValues.ADMIN_SERVER_URL);
+    return new AdminClient(adminUrl);
   }
 }
