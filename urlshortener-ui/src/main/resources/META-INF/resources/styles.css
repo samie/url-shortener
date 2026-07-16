@@ -2,8 +2,7 @@
    Master application stylesheet.
    Loaded by @StyleSheet("styles.css") on AppShell.
 
-   Component-specific stylesheets are imported via @import rules
-   (see PR 2 which migrates former @CssImport files).
+   Component-specific styles are currently loaded by individual views (e.g. via @CssImport).
 */
 
 /* Example: CSS class name to center align the content. */
