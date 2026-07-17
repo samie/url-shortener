@@ -11,6 +11,8 @@ import com.svenruppert.urlshortener.ui.vaadin.views.overview.OverviewView;
 import com.svenruppert.vaadin.security.authorization.api.AuthenticationService;
 import com.svenruppert.vaadin.security.authorization.api.SecurityServiceResolver;
 import com.svenruppert.vaadin.security.authorization.api.SessionAccessor;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Shortcuts;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
@@ -27,6 +29,21 @@ public class LoginView
 
   private final AuthenticationService<AppCredentials, AppUser> authenticationService =
       SecurityServiceResolver.authenticationService();
+
+  public LoginView() {
+    // The base LoginView wires the Sign In button to a click listener only,
+    // so pressing Enter in the form does nothing. Trigger the login flow on
+    // Enter so the form can be submitted from the keyboard.
+    Shortcuts.addShortcutListener(this, this::submitLogin, Key.ENTER);
+  }
+
+  private void submitLogin() {
+    if (checkCredentials()) {
+      navigateToApp();
+    } else {
+      reactOnFailedLogin();
+    }
+  }
 
   @Override
   public boolean checkCredentials() {
